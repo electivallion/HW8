@@ -125,12 +125,17 @@ public class Controller implements Initializable {
                             }
                         }
 
+                        if (str.equals("/end")) {
+                            textArea.appendText("Время ожидания истекло\n");
+                            socket.close();
+                            break;
+                        }
+
                         textArea.appendText(str + "\n");
                     }
 
-
                     //цикл работы
-                    while (true) {
+                    while (!socket.isClosed()) {
                         String str = in.readUTF();
 
                         if (str.startsWith("/")) {

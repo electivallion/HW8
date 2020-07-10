@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 public class ClientHandler {
     Server server;
@@ -23,9 +24,7 @@ public class ClientHandler {
 
             new Thread(() -> {
                 try {
-                    socket.setSoTimeout(5000);
-
-                    //цикл аутентификации
+                    socket.setSoTimeout(120000);
                     while (true) {
                         String str = in.readUTF();
 
@@ -59,10 +58,10 @@ public class ClientHandler {
                                 continue;
                             }
                             boolean b = server.getAuthService()
-                                    .registration(token[1],token[2],token[3]);
-                            if(b){
+                                    .registration(token[1], token[2], token[3]);
+                            if (b) {
                                 sendMsg("/regresult ok");
-                            }else{
+                            } else {
                                 sendMsg("/regresult failed");
                             }
                         }
@@ -91,10 +90,14 @@ public class ClientHandler {
                             server.broadcastMsg(this, str);
                         }
                     }
-                }
-                ///
-
-                catch (IOException e) {
+                } catch (SocketTimeoutException e) {
+                    try {
+                        out.writeUTF("/end");
+                        socket.close();
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
+                } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
                     System.out.println("Клиент отключился");
